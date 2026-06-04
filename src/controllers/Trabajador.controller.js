@@ -201,6 +201,50 @@ class TrabajadorController {
         throw error; // Re-lanza para manejo superior
     }
     }
+
+    static async obtenerTodosConTransportes(req, res) {
+    try {
+        const datos = await Trabajador.obtenerTodosConTransportes();
+
+        const mapa = {};
+
+        datos.forEach(row => {
+            if (!mapa[row.ID_Trabajador]) {
+                mapa[row.ID_Trabajador] = {
+                    ID_Trabajador: row.ID_Trabajador,
+                    Nombre: row.Nombre,
+                    Cedula: row.Cedula,
+                    FechaContratacion: row.FechaContratacion,
+                    is_active: row.is_active,
+                    transportes: []
+                };
+            }
+
+            if (row.ID_Transporte) {
+                mapa[row.ID_Trabajador].transportes.push({
+                    ID_Transporte: row.ID_Transporte,
+                    Placa: row.Placa,
+                    Capacidad: row.Capacidad,
+                    Costo: row.Costo,
+                    Estado: row.Estado,
+                    FechaAsignacion: row.FechaAsignacion
+                });
+            }
+        });
+
+        res.json({
+            total: Object.keys(mapa).length,
+            trabajadores: Object.values(mapa)
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al obtener trabajadores con transportes',
+            error: error.message
+        });
+    }
+}
+
 }
 
 module.exports = TrabajadorController;

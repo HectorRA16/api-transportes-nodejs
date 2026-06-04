@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter.model');
 
 const viajeSchema = new mongoose.Schema({
     ID_Usuario: {

@@ -79,6 +79,32 @@ class Trabajador {
 
         return result;
     }
+
+    static async obtenerTodosConTransportes() {
+    const [rows] = await pool.query(
+        `SELECT 
+            t.ID_Trabajador,
+            t.Nombre,
+            t.Cedula,
+            t.FechaContratacion,
+            t.is_active,
+            tr.ID_Transporte,
+            tr.Placa,
+            tr.Capacidad,
+            tr.Costo,
+            tr.Estado,
+            m.FechaAsignacion
+        FROM trabajador t
+        LEFT JOIN manejo m
+            ON t.ID_Trabajador = m.ID_Trabajador
+        LEFT JOIN transporte tr
+            ON m.ID_Transporte = tr.ID_Transporte
+        ORDER BY t.ID_Trabajador ASC, m.FechaAsignacion DESC`
+    );
+
+    return rows;
+}
+
 }
 
 module.exports = Trabajador;

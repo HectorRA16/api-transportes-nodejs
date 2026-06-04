@@ -126,20 +126,31 @@ class ViajeController {
             metadata
         } = req.body;
 
-        // Validación básica
-        if (!ID_Usuario || !ID_Transporte || !V_Fecha || !Costo_Cobrado) {
+        if (!ID_Transporte || !Costo_Cobrado) {
             return res.status(400).json({
-                mensaje: 'Faltan datos obligatorios'
+                mensaje: 'ID_Transporte y Costo_Cobrado son obligatorios'
+            });
+        }
+
+        const rol = req.user?.rol || req.user?.Rol;
+
+        const idUsuarioFinal = rol === 'usuario'
+            ? Number(req.user.id)
+            : Number(ID_Usuario);
+
+        if (!idUsuarioFinal) {
+            return res.status(400).json({
+                mensaje: 'ID_Usuario es obligatorio para trabajadores o administradores'
             });
         }
 
         const nuevoViaje = new Viaje({
-            ID_Usuario,
-            ID_Transporte,
-            V_Fecha,
-            Costo_Cobrado,
-            Estado,
-            metadata
+            ID_Usuario: idUsuarioFinal,
+            ID_Transporte: Number(ID_Transporte),
+            V_Fecha: V_Fecha ? new Date(V_Fecha) : new Date(),
+            Costo_Cobrado: Number(Costo_Cobrado),
+            Estado: Estado || 'completado',
+            metadata: metadata || {}
         });
 
         const viajeGuardado = await nuevoViaje.save();
@@ -193,6 +204,7 @@ static async listarMisViajes(req, res) {
             {
                 $project: {
                     _id: 1,
+                    ID_Viaje: 1,
                     ID_Usuario: 1,
                     ID_Transporte: 1,
                     V_Fecha: 1,
@@ -202,13 +214,14 @@ static async listarMisViajes(req, res) {
                     pago: {
                         _id: '$pago._id',
                         Id_Tarjeta: '$pago.Id_Tarjeta',
+                        ID_Viaje_Numero: '$pago.ID_Viaje_Numero',
                         Descripcion: '$pago.Descripcion',
                         Monto: '$pago.Monto',
                         Saldo_Antes: '$pago.Saldo_Antes',
                         Saldo_Despues: '$pago.Saldo_Despues',
                         FechaPago: '$pago.FechaPago'
                     }
-                }
+            }
             }
         ]);
 

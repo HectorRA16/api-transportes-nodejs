@@ -6,13 +6,16 @@ function soloUsuario(req, res, next) {
             });
         }
 
-        if (req.user.tipo !== 'usuario') {
+        const rol = req.user?.rol || req.user?.Rol;
+
+        if (rol !== 'usuario') {
             return res.status(403).json({
                 mensaje: 'Acceso solo para usuarios'
             });
         }
 
         next();
+
     } catch (error) {
         return res.status(500).json({
             mensaje: 'Error al validar usuario',

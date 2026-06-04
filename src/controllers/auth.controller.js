@@ -74,7 +74,7 @@ class AuthController {
 
 
     // LOGIN TRABAJADOR
-    static async loginTrabajador(req, res) {
+        static async loginTrabajador(req, res) {
         try {
             const { Cedula, Password } = req.body;
 
@@ -111,10 +111,9 @@ class AuthController {
 
             const token = jwt.sign(
                 {
-                    id: usuario.ID_Usuario,
-                    email: usuario.Email,
-                    tipo: 'usuario',
-                    rol: usuario.Rol
+                    id: trabajador.ID_Trabajador,
+                    tipo: 'trabajador',
+                    rol: 'trabajador'
                 },
                 process.env.JWT_SECRET,
                 { expiresIn: '1h' }
@@ -123,6 +122,12 @@ class AuthController {
             res.json({
                 mensaje: 'Login correcto',
                 token,
+                usuario: {
+                    ID_Trabajador: trabajador.ID_Trabajador,
+                    Nombre: trabajador.Nombre,
+                    Cedula: trabajador.Cedula,
+                    Rol: 'trabajador'
+                },
                 trabajador: {
                     ID_Trabajador: trabajador.ID_Trabajador,
                     Nombre: trabajador.Nombre,
@@ -137,6 +142,7 @@ class AuthController {
             });
         }
     }
+
 }
 
 module.exports = AuthController;
