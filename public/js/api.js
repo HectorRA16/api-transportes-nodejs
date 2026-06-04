@@ -1,4 +1,4 @@
-const API_URL = '';
+const API_BASE = '';
 
 export function getToken() {
     return localStorage.getItem('token');
@@ -10,19 +10,27 @@ export function setToken(token) {
 
 export function removeToken() {
     localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
 }
 
-export function setUsuario(usuario) {
+export function setSessionUser(usuario) {
     localStorage.setItem('usuario', JSON.stringify(usuario));
 }
 
-export function getUsuario() {
+export function getSessionUser() {
     const data = localStorage.getItem('usuario');
     return data ? JSON.parse(data) : null;
 }
 
-export async function apiRequest(endpoint, method = 'GET', body = null, auth = true) {
+export function clearSession() {
+    removeToken();
+    localStorage.removeItem('usuario');
+}
+
+export async function apiRequest(endpoint, options = {}) {
+    const method = options.method || 'GET';
+    const body = options.body || null;
+    const auth = options.auth !== false;
+
     const headers = {
         'Content-Type': 'application/json'
     };
@@ -33,21 +41,42 @@ export async function apiRequest(endpoint, method = 'GET', body = null, auth = t
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const options = {
+    const requestOptions = {
         method,
         headers
     };
 
-    if (body) {
-        options.body = JSON.stringify(body);
+    if (body !== null) {
+        requestOptions.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, options);
-    const data = await response.json();
+    const response = await fetch(`${API_BASE}${endpoint}`, requestOptions);
+
+    let data;
+
+    try {
+        data = await response.json();
+    } catch {
+        data = {
+            mensaje: 'La API no devolvió JSON válido'
+        };
+    }
 
     if (!response.ok) {
         throw data;
     }
 
     return data;
+}
+
+export function buildQuery(params) {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            query.append(key, value);
+        }
+    });
+
+    return query.toString();
 }

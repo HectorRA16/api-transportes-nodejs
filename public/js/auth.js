@@ -1,28 +1,58 @@
-import { apiRequest, setToken, setUsuario, removeToken, getUsuario } from './api.js';
+import { apiRequest, setToken, setSessionUser, getSessionUser, clearSession } from './api.js';
 
-export async function login(email, password) {
-    const data = await apiRequest('/api/auth/login-usuario', 'POST', {
-        Email: email,
-        Password: password
-    }, false);
+export async function loginUsuario(email, password) {
+    const data = await apiRequest('/api/auth/login-usuario', {
+        method: 'POST',
+        auth: false,
+        body: {
+            Email: email,
+            Password: password
+        }
+    });
 
-    if (data.token) {
-        setToken(data.token);
-        setUsuario(data.usuario);
-    }
+    guardarSesion(data);
 
     return data;
 }
 
+export async function loginTrabajador(cedula, password) {
+    const data = await apiRequest('/api/auth/login-trabajador', {
+        method: 'POST',
+        auth: false,
+        body: {
+            Cedula: cedula,
+            Password: password
+        }
+    });
+
+    guardarSesion(data);
+
+    return data;
+}
+
+function guardarSesion(data) {
+    if (data.token) {
+        setToken(data.token);
+    }
+
+    if (data.usuario) {
+        setSessionUser(data.usuario);
+    }
+}
+
 export function logout() {
-    removeToken();
+    clearSession();
 }
 
-export function usuarioActual() {
-    return getUsuario();
+export function getCurrentUser() {
+    return getSessionUser();
 }
 
-export function obtenerRol() {
-    const usuario = getUsuario();
+export function getRole() {
+    const usuario = getCurrentUser();
     return usuario?.Rol || usuario?.rol || null;
+}
+
+export function isAuthenticated() {
+    return Boolean(getCurrentUser());
 }
