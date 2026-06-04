@@ -32,6 +32,18 @@ class Manejo {
 
     return result;
 }
+
+static async quitarTransporte(ID_Trabajador, ID_Transporte) {
+    const [result] = await pool.query(
+        `DELETE FROM manejo
+        WHERE ID_Trabajador = ?
+        AND ID_Transporte = ?`,
+        [ID_Trabajador, ID_Transporte]
+    );
+
+    return result;
+}
+
 }
 
 module.exports = Manejo;

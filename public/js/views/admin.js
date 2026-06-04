@@ -10,7 +10,7 @@ export const adminMenu = [
     { id: 'trabajadoresAdmin', label: 'Trabajadores', icon: '👷' },
     { id: 'transportesAdmin', label: 'Transportes', icon: '🚌' },
     { id: 'viajesAdmin', label: 'Viajes', icon: '🗺️' },
-    { id: 'reportesAdmin', label: 'Reportes', icon: '📈' }
+    
 ];
 
 export function renderAdminView(view) {
@@ -299,6 +299,12 @@ function trabajadoresAdmin() {
                     <button id="btnAdminAsignar">Asignar</button>
                 `)}
 
+                ${card('Desasignar trabajador de transporte', `
+                    <input id="adminQuitarTrabajador" type="number" placeholder="ID Trabajador">
+                    <input id="adminQuitarTransporte" type="number" placeholder="ID Transporte">
+                    <button id="btnAdminQuitarAsignacion" class="danger">Desasignar</button>
+                `)}
+
                 ${card('Activar / desactivar trabajador', `
                     <input id="estadoTrabajadorId" type="number" placeholder="ID Trabajador">
                     <div class="actions">
@@ -364,6 +370,21 @@ function trabajadoresAdmin() {
                     ID_Trabajador: getNumber('adminAsignarTrabajador'),
                     ID_Transporte: getNumber('adminAsignarTransporte'),
                     FechaAsignacion: getValue('adminFechaAsignacion') || null
+                }
+            });
+            setOutput(data);
+        } catch (error) {
+            showError(error);
+        }
+    });
+
+    document.getElementById('btnAdminQuitarAsignacion').addEventListener('click', async () => {
+        try {
+            const data = await apiRequest('/api/manejo/quitar', {
+                method: 'DELETE',
+                body: {
+                    ID_Trabajador: getNumber('adminQuitarTrabajador'),
+                    ID_Transporte: getNumber('adminQuitarTransporte')
                 }
             });
 

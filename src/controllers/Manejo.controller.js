@@ -71,6 +71,42 @@ class ManejoController {
         });
     }
 }
+
+static async quitarTransporte(req, res) {
+    try {
+        const { ID_Trabajador, ID_Transporte } = req.body;
+
+        if (!ID_Trabajador || !ID_Transporte) {
+            return res.status(400).json({
+                mensaje: 'ID_Trabajador e ID_Transporte son obligatorios'
+            });
+        }
+
+        const resultado = await Manejo.quitarTransporte(
+            Number(ID_Trabajador),
+            Number(ID_Transporte)
+        );
+
+        if (resultado.affectedRows === 0) {
+            return res.status(404).json({
+                mensaje: 'No se encontró una asignación con esos datos'
+            });
+        }
+
+        res.json({
+            mensaje: 'Trabajador desasignado del transporte correctamente',
+            ID_Trabajador: Number(ID_Trabajador),
+            ID_Transporte: Number(ID_Transporte)
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al quitar asignación',
+            error: error.message
+        });
+    }
+}
+
 }
 
 module.exports = ManejoController;

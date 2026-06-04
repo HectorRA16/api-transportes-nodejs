@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+
 const ManejoController = require('../controllers/Manejo.controller');
 const verificarToken = require('../middlewares/verificarToken');
-const soloTrabajador = require('../middlewares/soloTrabajador');
+const soloAdminOTrabajador = require('../middlewares/soloAdminOTrabajador');
 
-router.post('/asignar', verificarToken, soloTrabajador, ManejoController.asignarTransporte);
-router.delete('/quitar', verificarToken, soloTrabajador, ManejoController.quitarTrabajadorDeTransporte);
+router.post('/asignar', verificarToken, soloAdminOTrabajador, ManejoController.asignarTransporte);
+router.delete('/quitar', verificarToken, soloAdminOTrabajador, ManejoController.quitarTransporte);
 
 module.exports = router;
