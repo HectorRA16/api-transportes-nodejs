@@ -1,4 +1,4 @@
-import { loginUsuario, loginTrabajador, logout, getCurrentUser, getRole } from './auth.js';
+import { loginUsuario, logout, getCurrentUser, getRole } from './auth.js';
 import { renderLogin, renderShell, setOutput } from './components.js';
 import { usuarioMenu, renderUsuarioView } from './views/usuario.js';
 import { trabajadorMenu, renderTrabajadorView } from './views/trabajador.js';
@@ -18,20 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function iniciarLogin() {
     renderLogin();
 
-    const loginType = document.getElementById('loginType');
-    const emailGroup = document.getElementById('emailGroup');
-    const cedulaGroup = document.getElementById('cedulaGroup');
-
-    loginType.addEventListener('change', () => {
-        if (loginType.value === 'trabajador') {
-            emailGroup.classList.add('hidden');
-            cedulaGroup.classList.remove('hidden');
-        } else {
-            cedulaGroup.classList.add('hidden');
-            emailGroup.classList.remove('hidden');
-        }
-    });
-
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -39,19 +25,33 @@ function iniciarLogin() {
         errorBox.classList.add('hidden');
 
         try {
-            if (loginType.value === 'trabajador') {
-                await loginTrabajador(
-                    document.getElementById('cedula').value,
-                    document.getElementById('password').value
-                );
-            } else {
-                await loginUsuario(
-                    document.getElementById('email').value,
-                    document.getElementById('password').value
-                );
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const data = await loginUsuario(email, password);
+
+            const rolRecibido = data.usuario?.Rol || data.usuario?.rol;
+
+            if (!rolRecibido) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+
+                errorBox.textContent = 'El usuario no tiene un rol asignado';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            if (!['usuario', 'trabajador', 'admin'].includes(rolRecibido)) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+
+                errorBox.textContent = `Rol no válido: ${rolRecibido}`;
+                errorBox.classList.remove('hidden');
+                return;
             }
 
             location.reload();
+
         } catch (error) {
             errorBox.textContent = error.mensaje || error.error || 'Error al iniciar sesión';
             errorBox.classList.remove('hidden');

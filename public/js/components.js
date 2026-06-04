@@ -7,25 +7,12 @@ export function renderLogin() {
                 <div class="login-brand">
                     <div class="brand-mark">🚌</div>
                     <h1>EZPay Transporte</h1>
-                    <p>Acceso al sistema de transporte inteligente</p>
+                    <p>Acceso automático según tu rol</p>
                 </div>
 
                 <form id="loginForm" class="form">
-                    <label>Tipo de acceso</label>
-                    <select id="loginType">
-                        <option value="usuario">Usuario / Administrador</option>
-                        <option value="trabajador">Trabajador</option>
-                    </select>
-
-                    <div id="emailGroup">
-                        <label>Correo electrónico</label>
-                        <input id="email" type="email" placeholder="correo@ejemplo.com">
-                    </div>
-
-                    <div id="cedulaGroup" class="hidden">
-                        <label>Cédula</label>
-                        <input id="cedula" type="text" placeholder="Cédula del trabajador">
-                    </div>
+                    <label>Correo electrónico</label>
+                    <input id="email" type="email" placeholder="correo@ejemplo.com" required>
 
                     <label>Contraseña</label>
                     <input id="password" type="password" placeholder="Contraseña" required>
