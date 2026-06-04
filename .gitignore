@@ -1,0 +1,7 @@
+node_modules
+.env
+.DS_Store
+npm-debug.log
+backup_mysql.sql
+backup_mongo
+*.tar.gz
