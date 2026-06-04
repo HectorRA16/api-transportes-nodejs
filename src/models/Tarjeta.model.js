@@ -6,7 +6,7 @@ class Tarjeta {
     const { Num_Tarjeta, NFC_ID, Saldo, Estado, ID_Usuario } = data;
 
     const [result] = await pool.query(
-        `INSERT INTO Tarjeta (Num_Tarjeta, NFC_ID, Saldo, Estado, ID_Usuario, FechaEmision)
+        `INSERT INTO tarjeta (Num_Tarjeta, NFC_ID, Saldo, Estado, ID_Usuario, FechaEmision)
         VALUES (?, ?, ?, ?, ?, CURDATE())`,
         [Num_Tarjeta, NFC_ID, Saldo, Estado, ID_Usuario]
     );
@@ -16,7 +16,7 @@ class Tarjeta {
 
 static async buscarPorNumero(numTarjeta) {
     const [rows] = await pool.query(
-        `SELECT * FROM Tarjeta WHERE Num_Tarjeta = ?`,
+        `SELECT * FROM tarjeta WHERE Num_Tarjeta = ?`,
         [numTarjeta]
     );
 
@@ -33,7 +33,7 @@ static async obtenerPorUsuario(idUsuario) {
             Estado,
             ID_Usuario,
             FechaEmision
-        FROM Tarjeta
+        FROM tarjeta
         WHERE ID_Usuario = ?
         ORDER BY FechaEmision DESC`,
         [idUsuario]
@@ -52,7 +52,7 @@ static async obtenerPorUsuario(idUsuario) {
                 Estado,
                 ID_Usuario,
                 FechaEmision
-            FROM Tarjeta
+            FROM tarjeta
             WHERE NFC_ID = ?`,
             [nfcId]
         );
@@ -63,7 +63,7 @@ static async obtenerPorUsuario(idUsuario) {
 
     static async actualizarSaldo(idTarjeta, nuevoSaldo) {
     const [result] = await pool.query(
-        `UPDATE Tarjeta
+        `UPDATE tarjeta
         SET Saldo = ?
         WHERE Id_Tarjeta = ?`,
         [nuevoSaldo, idTarjeta]
@@ -74,7 +74,7 @@ static async obtenerPorUsuario(idUsuario) {
 
     static async obtenerPorId(idTarjeta) {
     const [rows] = await pool.query(
-        `SELECT * FROM Tarjeta WHERE Id_Tarjeta = ?`,
+        `SELECT * FROM tarjeta WHERE Id_Tarjeta = ?`,
         [idTarjeta]
     );
 
@@ -83,7 +83,7 @@ static async obtenerPorUsuario(idUsuario) {
 
     static async cambiarEstado(idTarjeta, nuevoEstado) {
     const [result] = await pool.query(
-        `UPDATE Tarjeta
+        `UPDATE tarjeta
         SET Estado = ?
         WHERE Id_Tarjeta = ?`,
         [nuevoEstado, idTarjeta]

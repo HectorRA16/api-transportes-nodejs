@@ -4,7 +4,7 @@ class Transporte {
     static async obtenerPorId(idTransporte) {
         const [rows] = await pool.query(
             `SELECT ID_Transporte, Placa, Capacidad, Costo, Estado
-            FROM Transporte
+            FROM transporte
             WHERE ID_Transporte = ?`,
             [idTransporte]
         );
@@ -14,7 +14,7 @@ class Transporte {
 
     static async buscarPorPlaca(placa) {
         const [rows] = await pool.query(
-            `SELECT * FROM Transporte WHERE Placa = ?`,
+            `SELECT * FROM transporte WHERE Placa = ?`,
             [placa]
         );
 
@@ -25,7 +25,7 @@ class Transporte {
         const { Placa, Capacidad, Costo, Estado } = data;
 
         const [result] = await pool.query(
-            `INSERT INTO Transporte (Placa, Capacidad, Costo, Estado)
+            `INSERT INTO transporte (Placa, Capacidad, Costo, Estado)
             VALUES (?, ?, ?, ?)`,
             [Placa, Capacidad, Costo, Estado]
         );
@@ -40,7 +40,7 @@ class Transporte {
             Capacidad,
             Costo,
             Estado
-        FROM Transporte
+        FROM transporte
         WHERE Estado = 'activo'`
     );
 
@@ -48,7 +48,7 @@ class Transporte {
 }
 static async darDeBaja(idTransporte) {
     const [result] = await pool.query(
-        `UPDATE Transporte
+        `UPDATE transporte
         SET Estado = 'inactivo'
         WHERE ID_Transporte = ?`,
         [idTransporte]
@@ -58,7 +58,7 @@ static async darDeBaja(idTransporte) {
 }
 static async darDeAlta(idTransporte) {
     const [result] = await pool.query(
-        `UPDATE Transporte
+        `UPDATE transporte
         SET Estado = 'activo'
         WHERE ID_Transporte = ?`,
         [idTransporte]
@@ -80,10 +80,10 @@ static async obtenerConTrabajadorActual(idTransporte) {
             tb.FechaContratacion,
             tb.is_active,
             m.FechaAsignacion
-        FROM Transporte tr
-        LEFT JOIN Manejo m
+        FROM transporte tr
+        LEFT JOIN manejo m
             ON tr.ID_Transporte = m.ID_Transporte
-        LEFT JOIN Trabajador tb
+        LEFT JOIN trabajador tb
             ON m.ID_Trabajador = tb.ID_Trabajador
         WHERE tr.ID_Transporte = ?
         ORDER BY m.FechaAsignacion DESC
@@ -97,7 +97,7 @@ static async actualizarTransporte(idTransporte, data) {
     const { Placa, Capacidad, Costo, Estado } = data;
 
     const [result] = await pool.query(
-        `UPDATE Transporte
+        `UPDATE transporte
         SET Placa = ?, Capacidad = ?, Costo = ?, Estado = ?
         WHERE ID_Transporte = ?`,
         [Placa, Capacidad, Costo, Estado, idTransporte]
@@ -114,7 +114,7 @@ static async obtenerTodos() {
             Capacidad,
             Costo,
             Estado
-        FROM Transporte
+        FROM transporte
         ORDER BY ID_Transporte DESC`
     );
 
@@ -123,7 +123,7 @@ static async obtenerTodos() {
 
 static async eliminarTransporte(idTransporte) {
     const [result] = await pool.query(
-        `UPDATE Transporte
+        `UPDATE transporte
         SET Estado = 'inactivo'
         WHERE ID_Transporte = ?`,
         [idTransporte]
@@ -134,7 +134,7 @@ static async eliminarTransporte(idTransporte) {
 
 static async ponerEnMantenimiento(idTransporte) {
     const [result] = await pool.query(
-        `UPDATE Transporte
+        `UPDATE transporte
         SET Estado = 'mantenimiento'
         WHERE ID_Transporte = ?`,
         [idTransporte]
@@ -146,7 +146,7 @@ static async ponerEnMantenimiento(idTransporte) {
 static async buscarPlacaEnOtroTransporte(placa, idTransporte) {
     const [rows] = await pool.query(
         `SELECT *
-        FROM Transporte
+        FROM transporte
         WHERE Placa = ?
         AND ID_Transporte <> ?`,
         [placa, idTransporte]

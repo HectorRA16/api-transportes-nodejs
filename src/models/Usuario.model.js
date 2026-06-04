@@ -11,7 +11,7 @@ class Usuario {
             Telefono,
             Rol,
             is_active
-        FROM Usuario
+        FROM usuario
         WHERE Email = ?`,
         [email]
     );
@@ -22,7 +22,7 @@ class Usuario {
         const { Nombre, Email, Password, Telefono, Rol } = data;
 
     const [result] = await pool.query(
-        `INSERT INTO Usuario (Nombre, Email, Password, Telefono, Rol, is_active)
+        `INSERT INTO usuario (Nombre, Email, Password, Telefono, Rol, is_active)
         VALUES (?, ?, ?, ?, ?, true)`,
         [Nombre, Email, Password, Telefono, Rol]
     );
@@ -39,7 +39,7 @@ class Usuario {
             Telefono,
             Rol,
             is_active
-        FROM Usuario
+        FROM usuario
         WHERE ID_Usuario = ?`,
         [idUsuario]
     );
@@ -50,7 +50,7 @@ static async actualizarUsuario(idUsuario, data) {
     const { Nombre, Email, Telefono } = data;
 
     const [result] = await pool.query(
-        `UPDATE Usuario
+        `UPDATE usuario
         SET Nombre = ?, Email = ?, Telefono = ?
         WHERE ID_Usuario = ?`,
         [Nombre, Email, Telefono, idUsuario]
@@ -60,7 +60,7 @@ static async actualizarUsuario(idUsuario, data) {
 }
     static async desactivarUsuario(idUsuario) {
         const [result] = await pool.query(
-            `UPDATE Usuario
+            `UPDATE usuario
             SET is_active = false
             WHERE ID_Usuario = ?`,
             [idUsuario]
@@ -71,7 +71,7 @@ static async actualizarUsuario(idUsuario, data) {
 
     static async activarUsuario(idUsuario) {
     const [result] = await pool.query(
-        `UPDATE Usuario
+        `UPDATE usuario
         SET is_active = true
         WHERE ID_Usuario = ?`,
         [idUsuario]

@@ -10,7 +10,7 @@ class ReporteController {
                     DATE(FechaRecarga) AS Fecha,
                     COUNT(*) AS TotalRecargas,
                     SUM(Monto) AS TotalRecargado
-                FROM Recarga
+                FROM recarga
                 GROUP BY DATE(FechaRecarga)
                 ORDER BY Fecha DESC`
             );
@@ -34,7 +34,7 @@ class ReporteController {
                 `SELECT 
                     Estado,
                     COUNT(*) AS TotalTarjetas
-                FROM Tarjeta
+                FROM tarjeta
                 GROUP BY Estado
                 ORDER BY Estado`
             );
@@ -197,22 +197,22 @@ class ReporteController {
     static async resumenGeneral(req, res) {
         try {
             const [[usuarios]] = await pool.query(
-                `SELECT COUNT(*) AS TotalUsuarios FROM Usuario`
+                `SELECT COUNT(*) AS TotalUsuarios FROM usuario`
             );
 
             const [[tarjetas]] = await pool.query(
-                `SELECT COUNT(*) AS TotalTarjetas FROM Tarjeta`
+                `SELECT COUNT(*) AS TotalTarjetas FROM tarjeta`
             );
 
             const [[transportes]] = await pool.query(
-                `SELECT COUNT(*) AS TotalTransportes FROM Transporte`
+                `SELECT COUNT(*) AS TotalTransportes FROM transporte`
             );
 
             const [[recargas]] = await pool.query(
                 `SELECT 
                     COUNT(*) AS TotalRecargas,
                     IFNULL(SUM(Monto), 0) AS TotalRecargado
-                FROM Recarga`
+                FROM recarga`
             );
 
             const totalViajes = await Viaje.countDocuments();

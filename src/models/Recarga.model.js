@@ -5,7 +5,7 @@ class Recarga {
         const { Id_Tarjeta, Monto, Metodo } = data;
 
         const [result] = await pool.query(
-            `INSERT INTO Recarga (Id_Tarjeta, Monto, FechaRecarga, Metodo)
+            `INSERT INTO recarga (Id_Tarjeta, Monto, FechaRecarga, Metodo)
             VALUES (?, ?, NOW(), ?)`,
             [Id_Tarjeta, Monto, Metodo]
         );
@@ -21,7 +21,7 @@ class Recarga {
                 Monto,
                 FechaRecarga,
                 Metodo
-            FROM Recarga
+            FROM recarga
             WHERE Id_Tarjeta = ?
             ORDER BY FechaRecarga DESC`,
             [idTarjeta]

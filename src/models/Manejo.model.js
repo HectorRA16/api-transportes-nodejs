@@ -5,7 +5,7 @@ class Manejo {
         const { ID_Trabajador, ID_Transporte, FechaAsignacion } = data;
 
         const [result] = await pool.query(
-            `INSERT INTO Manejo (ID_Trabajador, ID_Transporte, FechaAsignacion)
+            `INSERT INTO manejo (ID_Trabajador, ID_Transporte, FechaAsignacion)
             VALUES (?, ?, ?)`,
             [ID_Trabajador, ID_Transporte, FechaAsignacion]
         );
@@ -15,7 +15,7 @@ class Manejo {
 
     static async verificarAsignacion(ID_Trabajador, ID_Transporte) {
         const [rows] = await pool.query(
-            `SELECT * FROM Manejo
+            `SELECT * FROM manejo
             WHERE ID_Trabajador = ? AND ID_Transporte = ?`,
             [ID_Trabajador, ID_Transporte]
         );
@@ -25,7 +25,7 @@ class Manejo {
     
     static async quitarTrabajadorDeTransporte(ID_Trabajador, ID_Transporte) {
     const [result] = await pool.query(
-        `DELETE FROM Manejo
+        `DELETE FROM manejo
         WHERE ID_Trabajador = ? AND ID_Transporte = ?`,
         [ID_Trabajador, ID_Transporte]
     );

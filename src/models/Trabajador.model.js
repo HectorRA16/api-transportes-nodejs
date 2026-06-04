@@ -3,7 +3,7 @@ const { pool } = require('../config/mysql');
 class Trabajador {
     static async buscarPorCedula(cedula) {
         const [rows] = await pool.query(
-            `SELECT * FROM Trabajador WHERE Cedula = ?`,
+            `SELECT * FROM trabajador WHERE Cedula = ?`,
             [cedula]
         );
 
@@ -14,7 +14,7 @@ class Trabajador {
         const { Nombre, Cedula, FechaContratacion, Password } = data;
 
         const [result] = await pool.query(
-            `INSERT INTO Trabajador (Nombre, Cedula, FechaContratacion, Password, is_active)
+            `INSERT INTO trabajador (Nombre, Cedula, FechaContratacion, Password, is_active)
             VALUES (?, ?, ?, ?, true)`,
             [Nombre, Cedula, FechaContratacion, Password]
         );
@@ -25,7 +25,7 @@ class Trabajador {
     static async obtenerPorId(idTrabajador) {
         const [rows] = await pool.query(
             `SELECT ID_Trabajador, Nombre, Cedula, FechaContratacion, is_active
-            FROM Trabajador
+            FROM trabajador
             WHERE ID_Trabajador = ?`,
             [idTrabajador]
         );
@@ -46,10 +46,10 @@ class Trabajador {
                 tr.Costo,
                 tr.Estado,
                 m.FechaAsignacion
-            FROM Trabajador t
-            LEFT JOIN Manejo m
+            FROM trabajador t
+            LEFT JOIN manejo m
                 ON t.ID_Trabajador = m.ID_Trabajador
-            LEFT JOIN Transporte tr
+            LEFT JOIN transporte tr
                 ON m.ID_Transporte = tr.ID_Transporte
             WHERE t.ID_Trabajador = ?`,
             [idTrabajador]
@@ -60,7 +60,7 @@ class Trabajador {
 
     static async desactivarTrabajador(idTrabajador) {
         const [result] = await pool.query(
-            `UPDATE Trabajador
+            `UPDATE trabajador
             SET is_active = false
             WHERE ID_Trabajador = ?`,
             [idTrabajador]
@@ -71,7 +71,7 @@ class Trabajador {
 
     static async activarTrabajador(idTrabajador) {
         const [result] = await pool.query(
-            `UPDATE Trabajador
+            `UPDATE trabajador
             SET is_active = true
             WHERE ID_Trabajador = ?`,
             [idTrabajador]
