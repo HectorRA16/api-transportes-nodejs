@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const Counter = require('./Counter.model');
 
 const viajeSchema = new mongoose.Schema({
+    ID_Viaje: {
+        type: Number,
+        unique: true,
+        sparse: true
+    },
     ID_Usuario: {
         type: Number,
         required: true
@@ -9,11 +14,6 @@ const viajeSchema = new mongoose.Schema({
     ID_Transporte: {
         type: Number,
         required: true
-    },
-    ID_Viaje: {
-    type: Number,
-    unique: true,
-    sparse: true
     },
     V_Fecha: {
         type: Date,
@@ -47,24 +47,18 @@ const viajeSchema = new mongoose.Schema({
     collection: 'viajes'
 });
 
-viajeSchema.pre('save', async function (next) {
-    try {
-        if (!this.isNew || this.ID_Viaje) {
-            return next();
-        }
-
-        const counter = await Counter.findByIdAndUpdate(
-            'viajes',
-            { $inc: { seq: 1 } },
-            { new: true, upsert: true }
-        );
-
-        this.ID_Viaje = counter.seq;
-        next();
-
-    } catch (error) {
-        next(error);
+viajeSchema.pre('save', async function () {
+    if (!this.isNew || this.ID_Viaje) {
+        return;
     }
+
+    const counter = await Counter.findByIdAndUpdate(
+        'viajes',
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+    );
+
+    this.ID_Viaje = counter.seq;
 });
 
 module.exports = mongoose.model('Viaje', viajeSchema);

@@ -13,6 +13,6 @@ router.get('/recientes', verificarToken, ViajeController.listarViajesRecientes);
 router.get('/usuario/:idUsuario', verificarToken, ViajeController.listarViajesPorUsuario);
 router.get('/transporte/:idTransporte', verificarToken, soloTrabajador, ViajeController.listarViajesPorTransporte);
 router.get('/transporte/:idTransporte/fechas', verificarToken, soloTrabajador, ViajeController.listarViajesPorTransporteYFechas);
-
+router.get('/mis-recientes', verificarToken, soloUsuario, ViajeController.listarMisViajesRecientes);
 
 module.exports = router;

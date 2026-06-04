@@ -294,11 +294,11 @@ function crearViaje() {
 
 function viajesRecientes() {
     setPage(
-        'Viajes recientes',
-        'Consulta los últimos viajes registrados',
+        'Mis viajes recientes',
+        'Consulta tus últimos viajes registrados',
         `
             <section class="module-card">
-                <button id="btnViajesRecientes">Cargar viajes recientes</button>
+                <button id="btnViajesRecientes">Cargar mis viajes recientes</button>
                 <div id="tablaViajesRecientes"></div>
             </section>
         `
@@ -306,10 +306,10 @@ function viajesRecientes() {
 
     document.getElementById('btnViajesRecientes').addEventListener('click', async () => {
         try {
-            const data = await apiRequest('/api/viajes/recientes');
+            const data = await apiRequest('/api/viajes/mis-recientes');
             setOutput(data);
 
-            const rows = data.viajes || data;
+            const rows = data.viajes || [];
             document.getElementById('tablaViajesRecientes').innerHTML = table(rows);
         } catch (error) {
             showError(error);

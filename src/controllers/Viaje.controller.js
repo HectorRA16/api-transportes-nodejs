@@ -239,6 +239,31 @@ static async listarMisViajes(req, res) {
     }
 }
 
+static async listarMisViajesRecientes(req, res) {
+    try {
+        const idUsuario = Number(req.user.id);
+        const { limite = 20 } = req.query;
+
+        const viajes = await Viaje.find({
+            ID_Usuario: idUsuario
+        })
+        .sort({ V_Fecha: -1 })
+        .limit(Number(limite));
+
+        res.json({
+            ID_Usuario: idUsuario,
+            total: viajes.length,
+            viajes
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al obtener tus viajes recientes',
+            error: error.message
+        });
+    }
+}
+
 }
 
 module.exports = ViajeController;
