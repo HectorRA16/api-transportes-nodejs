@@ -245,6 +245,53 @@ class TrabajadorController {
     }
 }
 
+static async actualizarTrabajador(req, res) {
+    try {
+        const { id } = req.params;
+        const { Nombre, Cedula, FechaContratacion } = req.body;
+
+        const trabajador = await Trabajador.obtenerPorId(id);
+
+        if (!trabajador) {
+            return res.status(404).json({
+                mensaje: 'Trabajador no encontrado'
+            });
+        }
+
+        if (Cedula) {
+            const cedulaExistente = await Trabajador.buscarCedulaEnOtroTrabajador(Cedula, id);
+
+            if (cedulaExistente) {
+                return res.status(400).json({
+                    mensaje: 'La cédula ya está registrada en otro trabajador'
+                });
+            }
+        }
+
+        const resultado = await Trabajador.actualizarTrabajador(id, {
+            Nombre,
+            Cedula,
+            FechaContratacion
+        });
+
+        if (resultado.affectedRows === 0) {
+            return res.status(400).json({
+                mensaje: 'No se realizaron cambios'
+            });
+        }
+
+        res.json({
+            mensaje: 'Trabajador actualizado correctamente'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al actualizar trabajador',
+            error: error.message
+        });
+    }
+}
+
 }
 
 module.exports = TrabajadorController;

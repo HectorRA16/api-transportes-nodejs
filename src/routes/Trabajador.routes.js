@@ -12,5 +12,6 @@ router.get('/:id', verificarToken, soloTrabajador, TrabajadorController.obtenerT
 router.get('/:id/transportes', verificarToken, soloTrabajador, TrabajadorController.obtenerTrabajadorConTransportes);
 router.put('/:id/desactivar', verificarToken, soloAdmin, TrabajadorController.desactivarTrabajador);
 router.put('/:id/activar', verificarToken, soloAdmin, TrabajadorController.activarTrabajador);
+router.put('/:id', verificarToken, soloAdmin, TrabajadorController.actualizarTrabajador);
 
 module.exports = router;

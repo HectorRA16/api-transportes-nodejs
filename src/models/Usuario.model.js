@@ -79,6 +79,56 @@ static async actualizarUsuario(idUsuario, data) {
 
     return result;
 }
+
+static async crearUsuarioConTrabajadorSiAplica(data) {
+    const { Nombre, Email, Password, Telefono, Rol } = data;
+
+    const connection = await pool.getConnection();
+
+    try {
+        await connection.beginTransaction();
+
+        const [usuarioResult] = await connection.query(
+            `INSERT INTO usuario (Nombre, Email, Password, Telefono, Rol, is_active)
+            VALUES (?, ?, ?, ?, ?, true)`,
+            [Nombre, Email, Password, Telefono, Rol]
+        );
+
+        let trabajadorResult = null;
+
+        if (Rol === 'trabajador') {
+            const [result] = await connection.query(
+                `INSERT INTO trabajador (
+                    Nombre,
+                    Cedula,
+                    FechaContratacion,
+                    Password,
+                    is_active,
+                    ID_Usuario
+                )
+                VALUES (?, NULL, CURDATE(), ?, true, ?)`,
+                [Nombre, Password, usuarioResult.insertId]
+            );
+
+            trabajadorResult = result;
+        }
+
+        await connection.commit();
+
+        return {
+            ID_Usuario: usuarioResult.insertId,
+            ID_Trabajador: trabajadorResult ? trabajadorResult.insertId : null
+        };
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+
+    } finally {
+        connection.release();
+    }
+}
+
 }
 
 module.exports = Usuario;

@@ -30,7 +30,7 @@ class UsuarioController {
 
             const passwordHash = await bcrypt.hash(Password, 10);
 
-            const resultado = await Usuario.crearUsuario({
+            const resultado = await Usuario.crearUsuarioConTrabajadorSiAplica({
                 Nombre,
                 Email,
                 Password: passwordHash,
@@ -39,10 +39,13 @@ class UsuarioController {
             });
 
             res.status(201).json({
-                mensaje: 'Usuario creado correctamente',
-                ID_Usuario: resultado.insertId,
+                mensaje: Rol === 'trabajador'
+                    ? 'Usuario trabajador creado correctamente'
+                    : 'Usuario creado correctamente',
+                ID_Usuario: resultado.ID_Usuario,
+                ID_Trabajador: resultado.ID_Trabajador,
                 Rol
-        });
+            });
         } catch (error) {
             res.status(500).json({
                 mensaje: 'Error al crear usuario',

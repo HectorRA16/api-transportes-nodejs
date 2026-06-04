@@ -105,6 +105,55 @@ class Trabajador {
     return rows;
 }
 
+static async actualizarTrabajador(idTrabajador, data) {
+    const campos = [];
+    const valores = [];
+
+    if (data.Nombre !== undefined) {
+        campos.push('Nombre = ?');
+        valores.push(data.Nombre);
+    }
+
+    if (data.Cedula !== undefined) {
+        campos.push('Cedula = ?');
+        valores.push(data.Cedula || null);
+    }
+
+    if (data.FechaContratacion !== undefined) {
+        campos.push('FechaContratacion = ?');
+        valores.push(data.FechaContratacion || null);
+    }
+
+    if (campos.length === 0) {
+        return {
+            affectedRows: 0
+        };
+    }
+
+    valores.push(idTrabajador);
+
+    const [result] = await pool.query(
+        `UPDATE trabajador
+        SET ${campos.join(', ')}
+        WHERE ID_Trabajador = ?`,
+        valores
+    );
+
+    return result;
+}
+
+static async buscarCedulaEnOtroTrabajador(cedula, idTrabajador) {
+    const [rows] = await pool.query(
+        `SELECT ID_Trabajador, Nombre, Cedula
+        FROM trabajador
+        WHERE Cedula = ?
+        AND ID_Trabajador <> ?`,
+        [cedula, idTrabajador]
+    );
+
+    return rows[0];
+}
+
 }
 
 module.exports = Trabajador;
