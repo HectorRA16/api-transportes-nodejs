@@ -5,21 +5,44 @@ const Pago = require('../models/Pago.model');
 
 class PagoController {
     static async obtenerHistorialPorTarjeta(req, res) {
-        try {
-            const { idTarjeta } = req.params;
+    try {
+        const { idTarjeta } = req.params;
 
-            const pagos = await Pago.find({
-                Id_Tarjeta: Number(idTarjeta)
-            }).sort({ FechaPago: -1 });
+        const rol = req.user?.rol || req.user?.Rol;
 
-            res.json(pagos);
-        } catch (error) {
-            res.status(500).json({
-                mensaje: 'Error al obtener historial de cobros',
-                error: error.message
-            });
+        if (rol === 'usuario') {
+            const tarjeta = await Tarjeta.obtenerPorId(idTarjeta);
+
+            if (!tarjeta) {
+                return res.status(404).json({
+                    mensaje: 'Tarjeta no encontrada'
+                });
+            }
+
+            if (Number(tarjeta.ID_Usuario) !== Number(req.user.id)) {
+                return res.status(403).json({
+                    mensaje: 'No puedes consultar cobros de una tarjeta que no te pertenece'
+                });
+            }
         }
+
+        const pagos = await Pago.find({
+            Id_Tarjeta: Number(idTarjeta)
+        }).sort({ FechaPago: -1 });
+
+        res.json({
+            Id_Tarjeta: Number(idTarjeta),
+            total: pagos.length,
+            pagos
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al obtener historial de cobros',
+            error: error.message
+        });
     }
+}
 
     static async obtenerCobrosPorTransporte(req, res) {
         try {
