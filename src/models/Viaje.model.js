@@ -9,6 +9,11 @@ const viajeSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    ID_Viaje: {
+    type: Number,
+    unique: true,
+    sparse: true
+    },
     V_Fecha: {
         type: Date,
         default: Date.now
@@ -39,6 +44,26 @@ const viajeSchema = new mongoose.Schema({
 }, {
     timestamps: true,
     collection: 'viajes'
+});
+
+viajeSchema.pre('save', async function (next) {
+    try {
+        if (!this.isNew || this.ID_Viaje) {
+            return next();
+        }
+
+        const counter = await Counter.findByIdAndUpdate(
+            'viajes',
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+
+        this.ID_Viaje = counter.seq;
+        next();
+
+    } catch (error) {
+        next(error);
+    }
 });
 
 module.exports = mongoose.model('Viaje', viajeSchema);

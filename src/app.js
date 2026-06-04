@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const trabajadorRoutes = require('./routes/Trabajador.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -17,6 +18,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/auth', authRoutes);
 app.use('/api/trabajadores', trabajadorRoutes);
 app.use('/api/manejo', manejoRoutes);
@@ -30,9 +32,7 @@ app.use('/api/reportes', reporteRoutes);
 
 
 app.get('/', (req, res) => {
-    res.json({
-    mensaje: 'API de transporte funcionando correctamente'
-    });
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 module.exports = app;

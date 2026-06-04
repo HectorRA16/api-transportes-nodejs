@@ -4,6 +4,7 @@ const { connectMongo } = require('./config/mongo');
 
 const PORT = process.env.PORT || 3000;
 
+
 async function iniciarServidor() {
     try {
         await connectMySQL();

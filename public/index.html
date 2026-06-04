@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>EZPay Transporte</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #111827;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .danger {
+            background: #dc2626;
+        }
+
+        .danger:hover {
+            background: #b91c1c;
+        }
+
+        .success {
+            background: #16a34a;
+        }
+
+        .success:hover {
+            background: #15803d;
+        }
+
+        pre {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            min-height: 180px;
+        }
+
+        .status {
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>EZPay Transporte</h1>
+    <p>Frontend conectado a API Node.js + Railway MySQL + MongoDB Atlas</p>
+</header>
+
+<main>
+    <div class="grid">
+
+        <div class="card">
+            <h2>Iniciar sesión</h2>
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Iniciar sesión</button>
+            <p>Estado: <span class="status" id="estadoSesion">Sin sesión</span></p>
+        </div>
+
+        <div class="card">
+            <h2>Crear tarjeta</h2>
+            <input type="text" id="numTarjeta" placeholder="Número de tarjeta de 16 dígitos">
+            <input type="text" id="nfcId" placeholder="NFC ID">
+            <input type="number" id="saldo" placeholder="Saldo inicial" value="0">
+            <button onclick="crearTarjeta()">Crear tarjeta</button>
+        </div>
+
+        <div class="card">
+            <h2>Mis tarjetas</h2>
+            <button onclick="listarMisTarjetas()">Consultar mis tarjetas</button>
+        </div>
+
+        <div class="card">
+            <h2>Bloquear / desbloquear tarjeta</h2>
+            <input type="number" id="idTarjetaEstado" placeholder="ID de tarjeta">
+            <button class="danger" onclick="bloquearTarjeta()">Bloquear tarjeta</button>
+            <button class="success" onclick="desbloquearTarjeta()">Desbloquear tarjeta</button>
+        </div>
+
+        <div class="card">
+            <h2>Mis viajes</h2>
+            <button onclick="listarMisViajes()">Consultar mis viajes</button>
+        </div>
+
+        <div class="card">
+            <h2>Reportes</h2>
+            <button onclick="resumenGeneral()">Resumen general</button>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <h2>Respuesta de la API</h2>
+        <pre id="resultado">Aquí aparecerán las respuestas...</pre>
+    </div>
+</main>
+
+<script>
+    let token = localStorage.getItem('token') || '';
+
+    if (token) {
+        document.getElementById('estadoSesion').textContent = 'Sesión activa';
+    }
+
+    function mostrar(data) {
+        document.getElementById('resultado').textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function login() {
+        try {
+            const Email = document.getElementById('email').value;
+            const Password = document.getElementById('password').value;
+
+            const res = await fetch('/api/auth/login-usuario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ Email, Password })
+            });
+
+            const data = await res.json();
+
+            if (data.token) {
+                token = data.token;
+                localStorage.setItem('token', token);
+                document.getElementById('estadoSesion').textContent = 'Sesión activa';
+            }
+
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al iniciar sesión', error: error.message });
+        }
+    }
+
+    async function crearTarjeta() {
+        try {
+            const Num_Tarjeta = document.getElementById('numTarjeta').value;
+            const NFC_ID = document.getElementById('nfcId').value;
+            const Saldo = Number(document.getElementById('saldo').value);
+
+            const res = await fetch('/api/tarjetas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    Num_Tarjeta,
+                    NFC_ID,
+                    Saldo,
+                    Estado: 'activa'
+                })
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al crear tarjeta', error: error.message });
+        }
+    }
+
+    async function listarMisTarjetas() {
+        try {
+            const res = await fetch('/api/tarjetas/mis-tarjetas', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al consultar tarjetas', error: error.message });
+        }
+    }
+
+    async function bloquearTarjeta() {
+        try {
+            const id = document.getElementById('idTarjetaEstado').value;
+
+            const res = await fetch(`/api/tarjetas/${id}/bloquear`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al bloquear tarjeta', error: error.message });
+        }
+    }
+
+    async function desbloquearTarjeta() {
+        try {
+            const id = document.getElementById('idTarjetaEstado').value;
+
+            const res = await fetch(`/api/tarjetas/${id}/desbloquear`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al desbloquear tarjeta', error: error.message });
+        }
+    }
+
+    async function listarMisViajes() {
+        try {
+            const res = await fetch('/api/viajes/mis-viajes', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al consultar viajes', error: error.message });
+        }
+    }
+
+    async function resumenGeneral() {
+        try {
+            const res = await fetch('/api/reportes/resumen-general', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            });
+
+            const data = await res.json();
+            mostrar(data);
+
+        } catch (error) {
+            mostrar({ mensaje: 'Error al consultar reporte', error: error.message });
+        }
+    }
+</script>
+
+</body>
+</html>

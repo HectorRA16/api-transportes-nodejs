@@ -52,6 +52,7 @@ class PagoController {
                         _id: 1,
                         Id_Tarjeta: 1,
                         ID_Viaje: 1,
+                        ID_Viaje_Numero: 1,
                         Descripcion: 1,
                         Monto: 1,
                         Saldo_Antes: 1,
@@ -61,6 +62,7 @@ class PagoController {
                         updatedAt: 1,
                         viaje: {
                             _id: '$viaje._id',
+                            ID_Viaje: '$viaje.ID_Viaje',
                             ID_Usuario: '$viaje.ID_Usuario',
                             ID_Transporte: '$viaje.ID_Transporte',
                             V_Fecha: '$viaje.V_Fecha',
@@ -162,6 +164,7 @@ class PagoController {
             const pago = await Pago.create({
                 Id_Tarjeta: tarjeta.Id_Tarjeta,
                 ID_Viaje: viaje._id,
+                ID_Viaje_Numero: viaje.ID_Viaje,
                 Descripcion: `Cobro de viaje en transporte ${ID_Transporte}`,
                 Monto: costoViaje,
                 Saldo_Antes: saldoAntes,

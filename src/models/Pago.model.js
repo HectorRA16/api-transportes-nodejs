@@ -10,6 +10,9 @@ const pagoSchema = new mongoose.Schema({
         ref: 'Viaje',
         required: true
     },
+    ID_Viaje_Numero: {
+        type: Number
+    },
     Descripcion: {
         type: String,
         required: true
