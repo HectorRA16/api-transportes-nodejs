@@ -114,6 +114,27 @@ class RecargaController {
             });
         }
     }
+
+    static async obtenerRecargasPorTarjeta(req, res) {
+    try {
+        const { idTarjeta } = req.params;
+
+        const recargas = await Recarga.obtenerPorTarjeta(idTarjeta);
+
+        res.json({
+            Id_Tarjeta: Number(idTarjeta),
+            total: recargas.length,
+            recargas
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            mensaje: 'Error al obtener historial de recargas',
+            error: error.message
+        });
+    }
+}
+
 }
 
 module.exports = RecargaController;

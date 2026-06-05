@@ -48,7 +48,6 @@ async function adminInicio() {
                     <canvas id="generalPie" width="300" height="300"></canvas>
                     <div id="generalPieLegend" class="legend"></div>
                 </div>
-                ${resultBox()}
             </section>
         `
     );
@@ -85,16 +84,7 @@ async function adminInicio() {
             ]
         );
 
-        showSuccess('Reporte general cargado correctamente', {
-            Usuarios: data.usuarios || 0,
-            Tarjetas: data.tarjetas || 0,
-            Transportes: data.transportes || 0,
-            Total_Recargas: data.recargas?.total || 0,
-            Dinero_Recargado: data.recargas?.dineroRecargado || 0,
-            Total_Viajes: data.viajes || 0,
-            Total_Pagos: data.pagos?.total || 0,
-            Dinero_Cobrado: data.pagos?.dineroCobrado || 0
-        });
+        
 
     } catch (error) {
         showError(error);

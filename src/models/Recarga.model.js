@@ -29,6 +29,24 @@ class Recarga {
 
         return rows;
     }
+
+    static async obtenerPorTarjeta(idTarjeta) {
+    const [rows] = await pool.query(
+        `SELECT 
+            ID_Recarga,
+            Id_Tarjeta,
+            Monto,
+            FechaRecarga,
+            Metodo
+        FROM recarga
+        WHERE Id_Tarjeta = ?
+        ORDER BY FechaRecarga DESC`,
+        [idTarjeta]
+    );
+
+    return rows;
+}
+
 }
 
 module.exports = Recarga;
