@@ -424,3 +424,139 @@ th {
         gap: 14px;
     }
 }
+
+.toast-container {
+    position: fixed;
+    top: 22px;
+    right: 22px;
+    z-index: 9999;
+    display: grid;
+    gap: 12px;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+}
+
+.toast {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 16px;
+    color: #0f172a;
+    background: white;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+    border-left: 6px solid #2563eb;
+    animation: toastIn 0.25s ease;
+}
+
+.toast p {
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.toast.success {
+    border-left-color: #16a34a;
+}
+
+.toast.error {
+    border-left-color: #dc2626;
+}
+
+.toast.warning {
+    border-left-color: #f97316;
+}
+
+.toast.hide {
+    animation: toastOut 0.25s ease forwards;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(25px);
+    }
+}
+
+.module-result {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.module-result.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.module-result.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.module-result.warning {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.result-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.result-title h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.result-item {
+    background: white;
+    border-radius: 14px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.result-item span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.result-item strong {
+    display: block;
+    color: #0f172a;
+    word-break: break-word;
+}
+
+.summary-card .result-grid {
+    margin-top: 12px;
+}

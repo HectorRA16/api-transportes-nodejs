@@ -69,42 +69,17 @@ export function renderShell(usuario, menuItems) {
                 </header>
 
                 <section id="mainContent" class="main-content"></section>
-
-                <section class="response-panel">
-                    <div class="response-header">
-                        <h2>Respuesta de la API</h2>
-                        <button id="clearOutputBtn" class="secondary small-btn">Limpiar</button>
-                    </div>
-                    <pre id="output">Aquí aparecerán las respuestas de las peticiones.</pre>
-                </section>
             </main>
         </div>
-    `;
 
-    document.getElementById('clearOutputBtn').addEventListener('click', () => {
-        setOutput('Aquí aparecerán las respuestas de las peticiones.');
-    });
+        <div id="toastContainer" class="toast-container"></div>
+    `;
 }
 
 export function setPage(title, subtitle, html) {
     document.getElementById('pageTitle').textContent = title;
     document.getElementById('pageSubtitle').textContent = subtitle;
     document.getElementById('mainContent').innerHTML = html;
-}
-
-export function setOutput(data) {
-    const output = document.getElementById('output');
-
-    if (typeof data === 'string') {
-        output.textContent = data;
-        return;
-    }
-
-    output.textContent = JSON.stringify(data, null, 2);
-}
-
-export function showError(error) {
-    setOutput(error);
 }
 
 export function getValue(id) {
@@ -114,6 +89,162 @@ export function getValue(id) {
 export function getNumber(id) {
     const value = document.getElementById(id)?.value;
     return value === '' || value === undefined ? null : Number(value);
+}
+
+export function card(title, body) {
+    return `
+        <article class="module-card">
+            <h2>${title}</h2>
+            ${body}
+        </article>
+    `;
+}
+
+export function resultBox(id = 'moduleResult') {
+    return `<div id="${id}" class="module-result hidden"></div>`;
+}
+
+export function showToast(type, message) {
+    const container = document.getElementById('toastContainer');
+
+    if (!container) {
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️';
+
+    toast.innerHTML = `
+        <span>${icon}</span>
+        <p>${message}</p>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+export function showModuleResult(title, data = {}, type = 'success', targetId = 'moduleResult') {
+    const target = document.getElementById(targetId);
+
+    if (!target) {
+        showToast(type, title);
+        return;
+    }
+
+    target.classList.remove('hidden');
+    target.className = `module-result ${type}`;
+
+    target.innerHTML = `
+        <div class="result-title">
+            <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span>
+            <h3>${title}</h3>
+        </div>
+        ${renderDetails(data)}
+    `;
+}
+
+export function showSuccess(title, data = {}, targetId = 'moduleResult') {
+    showToast('success', title);
+    showModuleResult(title, data, 'success', targetId);
+}
+
+export function showError(error, targetId = 'moduleResult') {
+    const message = error?.mensaje || error?.error || 'Ocurrió un error inesperado';
+
+    showToast('error', message);
+    showModuleResult(message, error, 'error', targetId);
+}
+
+export function setOutput(data) {
+    const message = data?.mensaje || 'Operación realizada correctamente';
+    showSuccess(message, data);
+}
+
+function renderDetails(data) {
+    if (!data || typeof data !== 'object') {
+        return `<p>${data || ''}</p>`;
+    }
+
+    const cleanData = flattenMainData(data);
+
+    const keys = Object.keys(cleanData);
+
+    if (keys.length === 0) {
+        return '';
+    }
+
+    return `
+        <div class="result-grid">
+            ${keys.map(key => `
+                <div class="result-item">
+                    <span>${formatLabel(key)}</span>
+                    <strong>${formatValue(cleanData[key])}</strong>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function flattenMainData(data) {
+    const result = {};
+
+    Object.entries(data).forEach(([key, value]) => {
+        if (value === null || value === undefined) {
+            return;
+        }
+
+        if (typeof value !== 'object') {
+            result[key] = value;
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            result[key] = `${value.length} registro(s)`;
+            return;
+        }
+
+        if (key === 'usuario' || key === 'trabajador' || key === 'transporte' || key === 'tarjeta' || key === 'viaje' || key === 'pago') {
+            Object.entries(value).forEach(([subKey, subValue]) => {
+                if (typeof subValue !== 'object') {
+                    result[subKey] = subValue;
+                }
+            });
+        }
+    });
+
+    return result;
+}
+
+function formatLabel(label) {
+    return label
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, letra => letra.toUpperCase());
+}
+
+function formatValue(value) {
+    if (value === null || value === undefined) {
+        return 'Sin dato';
+    }
+
+    if (typeof value === 'boolean') {
+        return value ? 'Sí' : 'No';
+    }
+
+    if (typeof value === 'number') {
+        return value;
+    }
+
+    if (typeof value === 'string' && value.includes('T') && value.includes('Z')) {
+        return new Date(value).toLocaleString();
+    }
+
+    return value;
 }
 
 export function table(data) {
@@ -130,13 +261,13 @@ export function table(data) {
             <table>
                 <thead>
                     <tr>
-                        ${keys.map(key => `<th>${key}</th>`).join('')}
+                        ${keys.map(key => `<th>${formatLabel(key)}</th>`).join('')}
                     </tr>
                 </thead>
                 <tbody>
                     ${rows.map(row => `
                         <tr>
-                            ${keys.map(key => `<td>${row[key] ?? ''}</td>`).join('')}
+                            ${keys.map(key => `<td>${formatValue(row[key])}</td>`).join('')}
                         </tr>
                     `).join('')}
                 </tbody>
@@ -145,11 +276,11 @@ export function table(data) {
     `;
 }
 
-export function card(title, body) {
+export function summaryCard(title, data = {}) {
     return `
-        <article class="module-card">
+        <section class="module-card summary-card">
             <h2>${title}</h2>
-            ${body}
-        </article>
+            ${renderDetails(data)}
+        </section>
     `;
 }
