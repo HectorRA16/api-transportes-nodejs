@@ -1,5 +1,14 @@
 import { apiRequest, buildQuery } from '../api.js';
-import { setPage, setOutput, showError, getValue, getNumber, table, card } from '../components.js';
+import {
+    setPage,
+    showError,
+    showSuccess,
+    getValue,
+    getNumber,
+    table,
+    card,
+    resultBox
+} from '../components.js';
 import { drawPieChart } from '../charts.js';
 
 export const adminMenu = [
@@ -9,8 +18,7 @@ export const adminMenu = [
     { id: 'tarjetasAdmin', label: 'Tarjetas', icon: '💳' },
     { id: 'trabajadoresAdmin', label: 'Trabajadores', icon: '👷' },
     { id: 'transportesAdmin', label: 'Transportes', icon: '🚌' },
-    { id: 'viajesAdmin', label: 'Viajes', icon: '🗺️' },
-    
+    { id: 'viajesAdmin', label: 'Viajes', icon: '🗺️' }
 ];
 
 export function renderAdminView(view) {
@@ -21,8 +29,7 @@ export function renderAdminView(view) {
         tarjetasAdmin,
         trabajadoresAdmin,
         transportesAdmin,
-        viajesAdmin,
-        reportesAdmin
+        viajesAdmin
     };
 
     views[view]?.();
@@ -36,18 +43,18 @@ async function adminInicio() {
             <section class="dashboard-grid" id="summaryCards"></section>
 
             <section class="module-card chart-card">
-                <h2>Distribución general</h2>
+                <h2>Distribución general del sistema</h2>
                 <div class="chart-layout">
                     <canvas id="generalPie" width="300" height="300"></canvas>
                     <div id="generalPieLegend" class="legend"></div>
                 </div>
+                ${resultBox()}
             </section>
         `
     );
 
     try {
         const data = await apiRequest('/api/reportes/resumen-general');
-        setOutput(data);
 
         const cards = [
             ['Usuarios', data.usuarios || 0],
@@ -77,6 +84,18 @@ async function adminInicio() {
                 data.pagos?.total || 0
             ]
         );
+
+        showSuccess('Reporte general cargado correctamente', {
+            Usuarios: data.usuarios || 0,
+            Tarjetas: data.tarjetas || 0,
+            Transportes: data.transportes || 0,
+            Total_Recargas: data.recargas?.total || 0,
+            Dinero_Recargado: data.recargas?.dineroRecargado || 0,
+            Total_Viajes: data.viajes || 0,
+            Total_Pagos: data.pagos?.total || 0,
+            Dinero_Cobrado: data.pagos?.dineroCobrado || 0
+        });
+
     } catch (error) {
         showError(error);
     }
@@ -89,16 +108,16 @@ function registrarUsuario() {
         `
             <form id="formUsuario" class="module-card form-grid">
                 <label>Nombre</label>
-                <input id="usuarioNombre" required>
+                <input id="usuarioNombre" placeholder="Nombre completo" required>
 
                 <label>Email</label>
-                <input id="usuarioEmail" type="email" required>
+                <input id="usuarioEmail" type="email" placeholder="correo@ejemplo.com" required>
 
                 <label>Password</label>
-                <input id="usuarioPassword" type="password" required>
+                <input id="usuarioPassword" type="password" placeholder="Contraseña" required>
 
                 <label>Teléfono</label>
-                <input id="usuarioTelefono">
+                <input id="usuarioTelefono" placeholder="Teléfono">
 
                 <label>Rol</label>
                 <select id="usuarioRol">
@@ -108,6 +127,8 @@ function registrarUsuario() {
                 </select>
 
                 <button type="submit">Registrar usuario</button>
+
+                ${resultBox()}
             </form>
         `
     );
@@ -116,18 +137,27 @@ function registrarUsuario() {
         e.preventDefault();
 
         try {
+            const body = {
+                Nombre: getValue('usuarioNombre'),
+                Email: getValue('usuarioEmail'),
+                Password: getValue('usuarioPassword'),
+                Telefono: getValue('usuarioTelefono'),
+                Rol: getValue('usuarioRol')
+            };
+
             const data = await apiRequest('/api/usuarios', {
                 method: 'POST',
-                body: {
-                    Nombre: getValue('usuarioNombre'),
-                    Email: getValue('usuarioEmail'),
-                    Password: getValue('usuarioPassword'),
-                    Telefono: getValue('usuarioTelefono'),
-                    Rol: getValue('usuarioRol')
-                }
+                body
             });
 
-            setOutput(data);
+            showSuccess('Usuario registrado correctamente', {
+                ID_Usuario: data.ID_Usuario,
+                ID_Trabajador: data.ID_Trabajador || 'No aplica',
+                Nombre: body.Nombre,
+                Email: body.Email,
+                Rol: body.Rol
+            });
+
         } catch (error) {
             showError(error);
         }
@@ -142,7 +172,8 @@ function usuarios() {
             <section class="panel-grid">
                 ${card('Buscar usuario por ID', `
                     <input id="buscarUsuarioId" type="number" placeholder="ID Usuario">
-                    <button id="btnBuscarUsuario">Buscar</button>
+                    <button id="btnBuscarUsuario">Buscar usuario</button>
+                    ${resultBox('resultadoBuscarUsuario')}
                 `)}
 
                 ${card('Actualizar usuario', `
@@ -150,13 +181,16 @@ function usuarios() {
                     <input id="actualizarNombre" placeholder="Nombre">
                     <input id="actualizarEmail" type="email" placeholder="Email">
                     <input id="actualizarTelefono" placeholder="Teléfono">
+
                     <select id="actualizarRol">
                         <option value="">Rol sin cambio</option>
                         <option value="usuario">usuario</option>
                         <option value="trabajador">trabajador</option>
                         <option value="admin">admin</option>
                     </select>
-                    <button id="btnActualizarUsuario">Actualizar</button>
+
+                    <button id="btnActualizarUsuario">Actualizar usuario</button>
+                    ${resultBox('resultadoActualizarUsuario')}
                 `)}
 
                 ${card('Activar / desactivar usuario', `
@@ -165,6 +199,7 @@ function usuarios() {
                         <button id="btnActivarUsuario" class="success">Activar</button>
                         <button id="btnDesactivarUsuario" class="danger">Desactivar</button>
                     </div>
+                    ${resultBox('resultadoEstadoUsuario')}
                 `)}
             </section>
         `
@@ -172,15 +207,20 @@ function usuarios() {
 
     document.getElementById('btnBuscarUsuario').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/usuarios/${getNumber('buscarUsuarioId')}`);
-            setOutput(data);
+            const id = getNumber('buscarUsuarioId');
+            const data = await apiRequest(`/api/usuarios/${id}`);
+
+            showSuccess('Usuario encontrado', data.usuario || data, 'resultadoBuscarUsuario');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoBuscarUsuario');
         }
     });
 
     document.getElementById('btnActualizarUsuario').addEventListener('click', async () => {
         try {
+            const id = getNumber('actualizarUsuarioId');
+
             const body = {
                 Nombre: getValue('actualizarNombre'),
                 Email: getValue('actualizarEmail'),
@@ -193,14 +233,22 @@ function usuarios() {
                 body.Rol = rol;
             }
 
-            const data = await apiRequest(`/api/usuarios/${getNumber('actualizarUsuarioId')}`, {
+            const data = await apiRequest(`/api/usuarios/${id}`, {
                 method: 'PUT',
                 body
             });
 
-            setOutput(data);
+            showSuccess('Usuario actualizado correctamente', {
+                ID_Usuario: id,
+                Nombre: body.Nombre,
+                Email: body.Email,
+                Telefono: body.Telefono,
+                Rol: body.Rol || 'Sin cambio',
+                Mensaje: data.mensaje
+            }, 'resultadoActualizarUsuario');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoActualizarUsuario');
         }
     });
 
@@ -210,13 +258,24 @@ function usuarios() {
 
 async function cambiarEstadoUsuario(accion) {
     try {
-        const data = await apiRequest(`/api/usuarios/${getNumber('estadoUsuarioId')}/${accion}`, {
+        const id = getNumber('estadoUsuarioId');
+
+        const data = await apiRequest(`/api/usuarios/${id}/${accion}`, {
             method: 'PUT'
         });
 
-        setOutput(data);
+        showSuccess(
+            accion === 'activar' ? 'Usuario activado correctamente' : 'Usuario desactivado correctamente',
+            {
+                ID_Usuario: id,
+                Estado: accion === 'activar' ? 'activo' : 'inactivo',
+                Mensaje: data.mensaje
+            },
+            'resultadoEstadoUsuario'
+        );
+
     } catch (error) {
-        showError(error);
+        showError(error, 'resultadoEstadoUsuario');
     }
 }
 
@@ -229,6 +288,7 @@ function tarjetasAdmin() {
                 ${card('Buscar tarjeta por NFC_ID', `
                     <input id="adminNfc" placeholder="NFC_ID">
                     <button id="btnBuscarNfc">Buscar tarjeta</button>
+                    ${resultBox('resultadoBuscarTarjeta')}
                 `)}
 
                 ${card('Bloquear / desbloquear tarjeta', `
@@ -237,6 +297,7 @@ function tarjetasAdmin() {
                         <button id="btnAdminBloquear" class="danger">Bloquear</button>
                         <button id="btnAdminDesbloquear" class="success">Desbloquear</button>
                     </div>
+                    ${resultBox('resultadoEstadoTarjeta')}
                 `)}
             </section>
         `
@@ -244,10 +305,13 @@ function tarjetasAdmin() {
 
     document.getElementById('btnBuscarNfc').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/tarjetas/nfc/${getValue('adminNfc')}`);
-            setOutput(data);
+            const nfc = getValue('adminNfc');
+            const data = await apiRequest(`/api/tarjetas/nfc/${nfc}`);
+
+            showSuccess('Tarjeta encontrada', data.tarjeta || data, 'resultadoBuscarTarjeta');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoBuscarTarjeta');
         }
     });
 
@@ -257,38 +321,61 @@ function tarjetasAdmin() {
 
 async function cambiarEstadoTarjetaAdmin(accion) {
     try {
-        const data = await apiRequest(`/api/tarjetas/${getNumber('adminTarjetaId')}/${accion}`, {
+        const id = getNumber('adminTarjetaId');
+
+        const data = await apiRequest(`/api/tarjetas/${id}/${accion}`, {
             method: 'PUT'
         });
 
-        setOutput(data);
+        showSuccess(
+            accion === 'bloquear' ? 'Tarjeta bloqueada correctamente' : 'Tarjeta desbloqueada correctamente',
+            {
+                ID_Tarjeta: id,
+                Estado: accion === 'bloquear' ? 'bloqueada' : 'activa',
+                Mensaje: data.mensaje
+            },
+            'resultadoEstadoTarjeta'
+        );
+
     } catch (error) {
-        showError(error);
+        showError(error, 'resultadoEstadoTarjeta');
     }
 }
 
 function trabajadoresAdmin() {
     setPage(
         'Administrar trabajadores',
-        'Registrar, buscar, activar, desactivar y asignar transportes',
+        'Registrar, buscar, actualizar, activar, desactivar y asignar transportes',
         `
             <section class="panel-grid">
                 ${card('Registrar trabajador', `
                     <input id="trabNombre" placeholder="Nombre">
-                    <input id="trabCedula" placeholder="Cédula">
+                    <input id="trabCedula" placeholder="Cédula opcional">
                     <input id="trabPassword" type="password" placeholder="Password">
                     <input id="trabFecha" type="date">
                     <input id="trabIdUsuario" type="number" placeholder="ID Usuario opcional">
-                    <button id="btnRegistrarTrabajador">Registrar</button>
+                    <button id="btnRegistrarTrabajador">Registrar trabajador</button>
+                    ${resultBox('resultadoRegistrarTrabajador')}
                 `)}
 
                 ${card('Buscar trabajador por ID', `
                     <input id="buscarTrabajadorId" type="number" placeholder="ID Trabajador">
-                    <button id="btnBuscarTrabajador">Buscar</button>
+                    <button id="btnBuscarTrabajador">Buscar trabajador</button>
+                    ${resultBox('resultadoBuscarTrabajador')}
+                `)}
+
+                ${card('Actualizar trabajador', `
+                    <input id="actualizarTrabajadorId" type="number" placeholder="ID Trabajador">
+                    <input id="actualizarTrabNombre" placeholder="Nombre">
+                    <input id="actualizarTrabCedula" placeholder="Cédula">
+                    <input id="actualizarTrabFecha" type="date">
+                    <button id="btnActualizarTrabajador">Actualizar trabajador</button>
+                    ${resultBox('resultadoActualizarTrabajador')}
                 `)}
 
                 ${card('Trabajadores con transportes', `
                     <button id="btnTrabajadoresTransportes">Ver asignaciones</button>
+                    ${resultBox('resultadoTrabajadoresTransportes')}
                     <div id="tablaTrabajadoresTransportes"></div>
                 `)}
 
@@ -296,13 +383,15 @@ function trabajadoresAdmin() {
                     <input id="adminAsignarTrabajador" type="number" placeholder="ID Trabajador">
                     <input id="adminAsignarTransporte" type="number" placeholder="ID Transporte">
                     <input id="adminFechaAsignacion" type="date">
-                    <button id="btnAdminAsignar">Asignar</button>
+                    <button id="btnAdminAsignar">Asignar transporte</button>
+                    ${resultBox('resultadoAsignarTransporte')}
                 `)}
 
                 ${card('Desasignar trabajador de transporte', `
                     <input id="adminQuitarTrabajador" type="number" placeholder="ID Trabajador">
                     <input id="adminQuitarTransporte" type="number" placeholder="ID Transporte">
                     <button id="btnAdminQuitarAsignacion" class="danger">Desasignar</button>
+                    ${resultBox('resultadoQuitarAsignacion')}
                 `)}
 
                 ${card('Activar / desactivar trabajador', `
@@ -311,6 +400,7 @@ function trabajadoresAdmin() {
                         <button id="btnActivarTrabajador" class="success">Activar</button>
                         <button id="btnDesactivarTrabajador" class="danger">Desactivar</button>
                     </div>
+                    ${resultBox('resultadoEstadoTrabajador')}
                 `)}
             </section>
         `
@@ -320,7 +410,7 @@ function trabajadoresAdmin() {
         try {
             const body = {
                 Nombre: getValue('trabNombre'),
-                Cedula: getValue('trabCedula'),
+                Cedula: getValue('trabCedula') || null,
                 Password: getValue('trabPassword'),
                 FechaContratacion: getValue('trabFecha') || null
             };
@@ -336,61 +426,119 @@ function trabajadoresAdmin() {
                 body
             });
 
-            setOutput(data);
+            showSuccess('Trabajador registrado correctamente', {
+                ID_Trabajador: data.ID_Trabajador || data.insertId,
+                Nombre: body.Nombre,
+                Cedula: body.Cedula || 'Pendiente',
+                Fecha_Contratacion: body.FechaContratacion || 'Fecha actual'
+            }, 'resultadoRegistrarTrabajador');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoRegistrarTrabajador');
         }
     });
 
     document.getElementById('btnBuscarTrabajador').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/trabajadores/${getNumber('buscarTrabajadorId')}`);
-            setOutput(data);
+            const id = getNumber('buscarTrabajadorId');
+            const data = await apiRequest(`/api/trabajadores/${id}`);
+
+            showSuccess('Trabajador encontrado', data.trabajador || data, 'resultadoBuscarTrabajador');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoBuscarTrabajador');
+        }
+    });
+
+    document.getElementById('btnActualizarTrabajador').addEventListener('click', async () => {
+        try {
+            const id = getNumber('actualizarTrabajadorId');
+
+            const body = {
+                Nombre: getValue('actualizarTrabNombre'),
+                Cedula: getValue('actualizarTrabCedula'),
+                FechaContratacion: getValue('actualizarTrabFecha') || null
+            };
+
+            const data = await apiRequest(`/api/trabajadores/${id}`, {
+                method: 'PUT',
+                body
+            });
+
+            showSuccess('Trabajador actualizado correctamente', {
+                ID_Trabajador: id,
+                Nombre: body.Nombre,
+                Cedula: body.Cedula,
+                Fecha_Contratacion: body.FechaContratacion || 'Sin cambio',
+                Mensaje: data.mensaje
+            }, 'resultadoActualizarTrabajador');
+
+        } catch (error) {
+            showError(error, 'resultadoActualizarTrabajador');
         }
     });
 
     document.getElementById('btnTrabajadoresTransportes').addEventListener('click', async () => {
         try {
             const data = await apiRequest('/api/trabajadores/transportes/asignados');
-            setOutput(data);
 
-            document.getElementById('tablaTrabajadoresTransportes').innerHTML = table(data.trabajadores || []);
+            showSuccess('Asignaciones consultadas correctamente', {
+                Total_Trabajadores: data.total || data.trabajadores?.length || 0
+            }, 'resultadoTrabajadoresTransportes');
+
+            document.getElementById('tablaTrabajadoresTransportes').innerHTML =
+                renderTrabajadoresTransportes(data.trabajadores || []);
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoTrabajadoresTransportes');
         }
     });
 
     document.getElementById('btnAdminAsignar').addEventListener('click', async () => {
         try {
+            const body = {
+                ID_Trabajador: getNumber('adminAsignarTrabajador'),
+                ID_Transporte: getNumber('adminAsignarTransporte'),
+                FechaAsignacion: getValue('adminFechaAsignacion') || null
+            };
+
             const data = await apiRequest('/api/manejo/asignar', {
                 method: 'POST',
-                body: {
-                    ID_Trabajador: getNumber('adminAsignarTrabajador'),
-                    ID_Transporte: getNumber('adminAsignarTransporte'),
-                    FechaAsignacion: getValue('adminFechaAsignacion') || null
-                }
+                body
             });
-            setOutput(data);
+
+            showSuccess('Transporte asignado correctamente', {
+                ID_Trabajador: body.ID_Trabajador,
+                ID_Transporte: body.ID_Transporte,
+                Fecha_Asignacion: body.FechaAsignacion || 'Fecha actual',
+                Mensaje: data.mensaje
+            }, 'resultadoAsignarTransporte');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoAsignarTransporte');
         }
     });
 
     document.getElementById('btnAdminQuitarAsignacion').addEventListener('click', async () => {
         try {
+            const body = {
+                ID_Trabajador: getNumber('adminQuitarTrabajador'),
+                ID_Transporte: getNumber('adminQuitarTransporte')
+            };
+
             const data = await apiRequest('/api/manejo/quitar', {
                 method: 'DELETE',
-                body: {
-                    ID_Trabajador: getNumber('adminQuitarTrabajador'),
-                    ID_Transporte: getNumber('adminQuitarTransporte')
-                }
+                body
             });
 
-            setOutput(data);
+            showSuccess('Trabajador desasignado correctamente', {
+                ID_Trabajador: body.ID_Trabajador,
+                ID_Transporte: body.ID_Transporte,
+                Mensaje: data.mensaje
+            }, 'resultadoQuitarAsignacion');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoQuitarAsignacion');
         }
     });
 
@@ -398,15 +546,62 @@ function trabajadoresAdmin() {
     document.getElementById('btnDesactivarTrabajador').addEventListener('click', () => cambiarEstadoTrabajador('desactivar'));
 }
 
+function renderTrabajadoresTransportes(trabajadores) {
+    if (!Array.isArray(trabajadores) || trabajadores.length === 0) {
+        return '<p class="empty">No hay trabajadores para mostrar.</p>';
+    }
+
+    return `
+        <div class="assignment-list">
+            ${trabajadores.map(trabajador => `
+                <article class="assignment-card">
+                    <h3>${trabajador.Nombre}</h3>
+                    <p><strong>ID Trabajador:</strong> ${trabajador.ID_Trabajador}</p>
+                    <p><strong>Cédula:</strong> ${trabajador.Cedula || 'Pendiente'}</p>
+                    <p><strong>Estado:</strong> ${trabajador.is_active ? 'Activo' : 'Inactivo'}</p>
+
+                    <h4>Transportes asignados</h4>
+
+                    ${trabajador.transportes && trabajador.transportes.length > 0
+                        ? `
+                            <ul>
+                                ${trabajador.transportes.map(transporte => `
+                                    <li>
+                                        <strong>${transporte.Placa}</strong>
+                                        — ID ${transporte.ID_Transporte}
+                                        — ${transporte.Estado}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        `
+                        : '<p class="empty">Sin transportes asignados.</p>'
+                    }
+                </article>
+            `).join('')}
+        </div>
+    `;
+}
+
 async function cambiarEstadoTrabajador(accion) {
     try {
-        const data = await apiRequest(`/api/trabajadores/${getNumber('estadoTrabajadorId')}/${accion}`, {
+        const id = getNumber('estadoTrabajadorId');
+
+        const data = await apiRequest(`/api/trabajadores/${id}/${accion}`, {
             method: 'PUT'
         });
 
-        setOutput(data);
+        showSuccess(
+            accion === 'activar' ? 'Trabajador activado correctamente' : 'Trabajador desactivado correctamente',
+            {
+                ID_Trabajador: id,
+                Estado: accion === 'activar' ? 'activo' : 'inactivo',
+                Mensaje: data.mensaje
+            },
+            'resultadoEstadoTrabajador'
+        );
+
     } catch (error) {
-        showError(error);
+        showError(error, 'resultadoEstadoTrabajador');
     }
 }
 
@@ -420,11 +615,13 @@ function transportesAdmin() {
                     <input id="transPlaca" placeholder="Placa">
                     <input id="transCapacidad" type="number" placeholder="Capacidad">
                     <input id="transCosto" type="number" step="0.01" placeholder="Costo">
-                    <button id="btnRegistrarTransporte">Registrar</button>
+                    <button id="btnRegistrarTransporte">Registrar transporte</button>
+                    ${resultBox('resultadoRegistrarTransporte')}
                 `)}
 
                 ${card('Listar transportes activos', `
                     <button id="btnTransportesActivos">Listar activos</button>
+                    ${resultBox('resultadoTransportesActivos')}
                     <div id="tablaTransportesActivos"></div>
                 `)}
 
@@ -433,12 +630,15 @@ function transportesAdmin() {
                     <input id="actualizarPlaca" placeholder="Placa">
                     <input id="actualizarCapacidad" type="number" placeholder="Capacidad">
                     <input id="actualizarCosto" type="number" step="0.01" placeholder="Costo">
+
                     <select id="actualizarEstado">
                         <option value="activo">activo</option>
                         <option value="mantenimiento">mantenimiento</option>
                         <option value="inactivo">inactivo</option>
                     </select>
-                    <button id="btnActualizarTransporte">Actualizar</button>
+
+                    <button id="btnActualizarTransporte">Actualizar transporte</button>
+                    ${resultBox('resultadoActualizarTransporte')}
                 `)}
 
                 ${card('Cambiar estado de transporte', `
@@ -448,6 +648,7 @@ function transportesAdmin() {
                         <button id="btnBajaTransporte" class="danger">Dar de baja</button>
                         <button id="btnMantenimientoTransporte" class="warning">Mantenimiento</button>
                     </div>
+                    ${resultBox('resultadoEstadoTransporte')}
                 `)}
             </section>
         `
@@ -455,49 +656,75 @@ function transportesAdmin() {
 
     document.getElementById('btnRegistrarTransporte').addEventListener('click', async () => {
         try {
+            const body = {
+                Placa: getValue('transPlaca'),
+                Capacidad: getNumber('transCapacidad'),
+                Costo: getNumber('transCosto'),
+                Estado: 'activo'
+            };
+
             const data = await apiRequest('/api/transportes', {
                 method: 'POST',
-                body: {
-                    Placa: getValue('transPlaca'),
-                    Capacidad: getNumber('transCapacidad'),
-                    Costo: getNumber('transCosto'),
-                    Estado: 'activo'
-                }
+                body
             });
 
-            setOutput(data);
+            showSuccess('Transporte registrado correctamente', {
+                ID_Transporte: data.ID_Transporte || data.insertId,
+                Placa: body.Placa,
+                Capacidad: body.Capacidad,
+                Costo: body.Costo,
+                Estado: body.Estado
+            }, 'resultadoRegistrarTransporte');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoRegistrarTransporte');
         }
     });
 
     document.getElementById('btnTransportesActivos').addEventListener('click', async () => {
         try {
             const data = await apiRequest('/api/transportes/activos');
-            setOutput(data);
 
             const rows = data.transportes || data;
+
+            showSuccess('Transportes activos consultados', {
+                Total_Transportes: Array.isArray(rows) ? rows.length : data.total
+            }, 'resultadoTransportesActivos');
+
             document.getElementById('tablaTransportesActivos').innerHTML = table(rows);
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoTransportesActivos');
         }
     });
 
     document.getElementById('btnActualizarTransporte').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/transportes/${getNumber('actualizarTransporteId')}`, {
+            const id = getNumber('actualizarTransporteId');
+
+            const body = {
+                Placa: getValue('actualizarPlaca'),
+                Capacidad: getNumber('actualizarCapacidad'),
+                Costo: getNumber('actualizarCosto'),
+                Estado: getValue('actualizarEstado')
+            };
+
+            const data = await apiRequest(`/api/transportes/${id}`, {
                 method: 'PUT',
-                body: {
-                    Placa: getValue('actualizarPlaca'),
-                    Capacidad: getNumber('actualizarCapacidad'),
-                    Costo: getNumber('actualizarCosto'),
-                    Estado: getValue('actualizarEstado')
-                }
+                body
             });
 
-            setOutput(data);
+            showSuccess('Transporte actualizado correctamente', {
+                ID_Transporte: id,
+                Placa: body.Placa,
+                Capacidad: body.Capacidad,
+                Costo: body.Costo,
+                Estado: body.Estado,
+                Mensaje: data.mensaje
+            }, 'resultadoActualizarTransporte');
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoActualizarTransporte');
         }
     });
 
@@ -508,13 +735,26 @@ function transportesAdmin() {
 
 async function cambiarEstadoTransporte(accion) {
     try {
-        const data = await apiRequest(`/api/transportes/${getNumber('estadoTransporteId')}/${accion}`, {
+        const id = getNumber('estadoTransporteId');
+
+        const data = await apiRequest(`/api/transportes/${id}/${accion}`, {
             method: 'PUT'
         });
 
-        setOutput(data);
+        const estados = {
+            alta: 'activo',
+            baja: 'inactivo',
+            mantenimiento: 'mantenimiento'
+        };
+
+        showSuccess('Estado del transporte actualizado', {
+            ID_Transporte: id,
+            Nuevo_Estado: estados[accion],
+            Mensaje: data.mensaje
+        }, 'resultadoEstadoTransporte');
+
     } catch (error) {
-        showError(error);
+        showError(error, 'resultadoEstadoTransporte');
     }
 }
 
@@ -526,13 +766,15 @@ function viajesAdmin() {
             <section class="panel-grid">
                 ${card('Viajes por usuario', `
                     <input id="viajesUsuarioId" type="number" placeholder="ID Usuario">
-                    <button id="btnViajesUsuario">Consultar</button>
+                    <button id="btnViajesUsuario">Consultar viajes</button>
+                    ${resultBox('resultadoViajesUsuario')}
                     <div id="tablaViajesUsuario"></div>
                 `)}
 
                 ${card('Viajes por transporte', `
                     <input id="viajesTransporteId" type="number" placeholder="ID Transporte">
-                    <button id="btnViajesTransporte">Consultar</button>
+                    <button id="btnViajesTransporte">Consultar viajes</button>
+                    ${resultBox('resultadoViajesTransporte')}
                     <div id="tablaViajesTransporte"></div>
                 `)}
 
@@ -541,6 +783,7 @@ function viajesAdmin() {
                     <input id="fechaInicio" type="date">
                     <input id="fechaFin" type="date">
                     <button id="btnViajesRango">Consultar rango</button>
+                    ${resultBox('resultadoViajesRango')}
                     <div id="tablaViajesRango"></div>
                 `)}
             </section>
@@ -549,71 +792,66 @@ function viajesAdmin() {
 
     document.getElementById('btnViajesUsuario').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/viajes/usuario/${getNumber('viajesUsuarioId')}`);
-            setOutput(data);
-            document.getElementById('tablaViajesUsuario').innerHTML = table(data.viajes || data);
+            const id = getNumber('viajesUsuarioId');
+            const data = await apiRequest(`/api/viajes/usuario/${id}`);
+
+            const rows = data.viajes || data;
+
+            showSuccess('Viajes del usuario consultados', {
+                ID_Usuario: id,
+                Total_Viajes: Array.isArray(rows) ? rows.length : data.total
+            }, 'resultadoViajesUsuario');
+
+            document.getElementById('tablaViajesUsuario').innerHTML = table(rows);
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoViajesUsuario');
         }
     });
 
     document.getElementById('btnViajesTransporte').addEventListener('click', async () => {
         try {
-            const data = await apiRequest(`/api/viajes/transporte/${getNumber('viajesTransporteId')}`);
-            setOutput(data);
-            document.getElementById('tablaViajesTransporte').innerHTML = table(data.viajes || data);
+            const id = getNumber('viajesTransporteId');
+            const data = await apiRequest(`/api/viajes/transporte/${id}`);
+
+            const rows = data.viajes || data;
+
+            showSuccess('Viajes del transporte consultados', {
+                ID_Transporte: id,
+                Total_Viajes: Array.isArray(rows) ? rows.length : data.total
+            }, 'resultadoViajesTransporte');
+
+            document.getElementById('tablaViajesTransporte').innerHTML = table(rows);
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoViajesTransporte');
         }
     });
 
     document.getElementById('btnViajesRango').addEventListener('click', async () => {
         try {
+            const id = getNumber('rangoTransporteId');
+
             const query = buildQuery({
                 fechaInicio: getValue('fechaInicio'),
                 fechaFin: getValue('fechaFin')
             });
 
-            const data = await apiRequest(`/api/viajes/transporte/${getNumber('rangoTransporteId')}/fechas?${query}`);
-            setOutput(data);
-            document.getElementById('tablaViajesRango').innerHTML = table(data.viajes || data);
+            const data = await apiRequest(`/api/viajes/transporte/${id}/fechas?${query}`);
+
+            const rows = data.viajes || data;
+
+            showSuccess('Viajes por rango consultados', {
+                ID_Transporte: id,
+                Fecha_Inicio: getValue('fechaInicio'),
+                Fecha_Fin: getValue('fechaFin'),
+                Total_Viajes: Array.isArray(rows) ? rows.length : data.total
+            }, 'resultadoViajesRango');
+
+            document.getElementById('tablaViajesRango').innerHTML = table(rows);
+
         } catch (error) {
-            showError(error);
+            showError(error, 'resultadoViajesRango');
         }
     });
-}
-
-function reportesAdmin() {
-    setPage(
-        'Reportes',
-        'Consulta reportes operativos del sistema',
-        `
-            <section class="module-card">
-                <div class="actions">
-                    <button id="repResumen">Resumen general</button>
-                    <button id="repRecargas">Recargas por día</button>
-                    <button id="repTarjetas">Tarjetas por estado</button>
-                    <button id="repPagos">Pagos por día</button>
-                    <button id="repViajes">Viajes por día</button>
-                    <button id="repTransportes">Transportes más usados</button>
-                </div>
-            </section>
-        `
-    );
-
-    const load = async (endpoint) => {
-        try {
-            const data = await apiRequest(endpoint);
-            setOutput(data);
-        } catch (error) {
-            showError(error);
-        }
-    };
-
-    document.getElementById('repResumen').addEventListener('click', () => load('/api/reportes/resumen-general'));
-    document.getElementById('repRecargas').addEventListener('click', () => load('/api/reportes/recargas-dia'));
-    document.getElementById('repTarjetas').addEventListener('click', () => load('/api/reportes/tarjetas-estado'));
-    document.getElementById('repPagos').addEventListener('click', () => load('/api/reportes/pagos-dia'));
-    document.getElementById('repViajes').addEventListener('click', () => load('/api/reportes/viajes-dia'));
-    document.getElementById('repTransportes').addEventListener('click', () => load('/api/reportes/transportes-mas-usados'));
 }

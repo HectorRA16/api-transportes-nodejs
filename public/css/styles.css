@@ -560,3 +560,33 @@ th {
 .summary-card .result-grid {
     margin-top: 12px;
 }
+
+.assignment-list {
+    display: grid;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.assignment-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.assignment-card h3 {
+    margin: 0 0 10px;
+}
+
+.assignment-card h4 {
+    margin: 16px 0 8px;
+}
+
+.assignment-card p {
+    margin: 6px 0;
+}
+
+.assignment-card ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+}
